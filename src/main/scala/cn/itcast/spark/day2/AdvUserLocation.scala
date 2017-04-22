@@ -13,20 +13,20 @@ object AdvUserLocation {
   def main(args: Array[String]) {
     val conf = new SparkConf().setAppName("AdvUserLocation").setMaster("local[2]")
     val sc = new SparkContext(conf)
-    val rdd0 = sc.textFile("c://bs_log").map( line => {
+    val rdd0 = sc.textFile("c://bs.log").map( line => {//18611132889,20160327180000,16030401EAFB68F1E3CDF819735E1C66,0
       val fields = line.split(",")
       val eventType = fields(3)
       val time = fields(1)
       val timeLong = if(eventType == "1")  -time.toLong else time.toLong
-      ((fields(0),fields(2)), timeLong)
+      ((fields(0),fields(2)), timeLong)               //（手机,基站），时间,
     })
     val rdd1 = rdd0.reduceByKey(_+_).map(t => {
       val mobile = t._1._1
       val lac = t._1._2
       val time = t._2
-      (lac, (mobile, time))
+      (lac, (mobile, time))                         //基站,(手机，时间)
     })
-    val rdd2 = sc.textFile("c://lac_info.txt").map(line => {
+    val rdd2 = sc.textFile("c://loc_info.txt").map(line => {
       val f = line.split(",")
       //(基站ID， （经度，纬度）)
       (f(0), (f(1), f(2)))
@@ -42,12 +42,12 @@ object AdvUserLocation {
     })
     //rdd4分组后的
     val rdd4 = rdd3.groupBy(_._1)
-    val rdd5 = rdd4.mapValues(it => {
+    val rdd5 = rdd4.mapValues(it => {//(mobile, lac, time, x, y)
       it.toList.sortBy(_._3).reverse.take(2)
     })
-        println(rdd1.join(rdd2).collect().toBuffer)
-    //    println(rdd5.collect().toBuffer)
-    rdd5.saveAsTextFile("c://out")
+      //  println(rdd1.join(rdd2).collect().toBuffer)
+      println(rdd5.collect().toBuffer)
+    //rdd5.saveAsTextFile("c://out")
     sc.stop()
   }
 }

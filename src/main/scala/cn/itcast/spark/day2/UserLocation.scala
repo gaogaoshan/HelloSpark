@@ -14,17 +14,17 @@ object UserLocation {
   def main(args: Array[String]) {
     val conf = new SparkConf().setAppName("ForeachDemo").setMaster("local[2]")
     val sc = new SparkContext(conf)
-    //sc.textFile("c://bs_log").map(_.split(",")).map(x => (x(0), x(1), x(2), x(3)))
-    val mbt = sc.textFile("c://bs_log").map( line => {
+    //sc.textFile("c://bs.log").map(_.split(",")).map(x => (x(0), x(1), x(2), x(3)))
+    val mbt = sc.textFile("c://bs.log").map( line => {//18611132889,20160327180000,16030401EAFB68F1E3CDF819735E1C66,0
       val fields = line.split(",")
       val eventType = fields(3)
       val time = fields(1)
       val timeLong = if(eventType == "1")  -time.toLong else time.toLong
-      (fields(0) + "_"  + fields(2), timeLong)
+      (fields(0) + "_"  + fields(2), timeLong)      // 18611132889_16030401EAFB68F1E3CDF819735E1C66,20160327180000
     })
     //println(mbt.collect().toBuffer)
     //(18611132889_9F36407EAD0629FC166F14DDE7970F68,54000)
-    val rdd1 = mbt.groupBy(_._1).mapValues(_.foldLeft(0L)(_ + _._2))
+    val rdd1 = mbt.groupBy(_._1).mapValues(_.foldLeft(0L)(_ + _._2))//(18611132889,16030401EAFB68F1E3CDF819735E1C66) ,60 ----- （ 手机号+基站），手机基站总时间
     val rdd2 = rdd1.map( t => {
       val mobile_bs = t._1
       val mobile = mobile_bs.split("_")(0)
