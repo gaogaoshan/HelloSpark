@@ -91,8 +91,6 @@ object IPLocation {
 
     //向MySQL写入数据
     result.foreachPartition(data2MySQL(_))
-
-
     //println(result.collect().toBuffer)
 
     sc.stop()
