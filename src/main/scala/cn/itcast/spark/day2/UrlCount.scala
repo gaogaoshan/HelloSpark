@@ -15,7 +15,7 @@ object UrlCount {
     val sc = new SparkContext(conf)
 
     //rdd1将数据切分，元组中放的是（URL， 1）
-    val rdd1 = sc.textFile("D:\\itcast.log").map(line => {//20160321102225	http://java.itcast.cn/java/course/javaee.shtml
+    val rdd1 = sc.textFile("C:\\testData\\itcast.log").map(line => {//20160321102225	http://java.itcast.cn/java/course/javaee.shtml
       val f = line.split("\t")
       (f(1), 1)//  (http://java.itcast.cn/java/course/javaee.shtml,1)
     })
