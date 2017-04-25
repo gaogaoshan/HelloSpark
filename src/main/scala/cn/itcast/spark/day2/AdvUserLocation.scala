@@ -11,9 +11,10 @@ import org.apache.spark.{SparkConf, SparkContext}
 object AdvUserLocation {
 
   def main(args: Array[String]) {
+    System.setProperty("hadoop.home.dir", "E:\\\\ApacheSoft\\hadoop\\")
     val conf = new SparkConf().setAppName("AdvUserLocation").setMaster("local[2]")
     val sc = new SparkContext(conf)
-    val rdd0 = sc.textFile("c://bs.log").map( line => {//18611132889,20160327180000,16030401EAFB68F1E3CDF819735E1C66,0
+    val rdd0 = sc.textFile("c://testData//bs.log").map( line => {//18611132889,20160327180000,16030401EAFB68F1E3CDF819735E1C66,0
       val fields = line.split(",")
       val eventType = fields(3)
       val time = fields(1)
@@ -26,7 +27,7 @@ object AdvUserLocation {
       val time = t._2
       (lac, (mobile, time))                         //基站,(手机，时间)
     })
-    val rdd2 = sc.textFile("c://loc_info.txt").map(line => {
+    val rdd2 = sc.textFile("c://testData//loc_info.txt").map(line => {
       val f = line.split(",")
       //(基站ID， （经度，纬度）)
       (f(0), (f(1), f(2)))
@@ -46,8 +47,8 @@ object AdvUserLocation {
       it.toList.sortBy(_._3).reverse.take(2)
     })
       //  println(rdd1.join(rdd2).collect().toBuffer)
-      println(rdd5.collect().toBuffer)
-    //rdd5.saveAsTextFile("c://out")
+    println(rdd5.collect().toBuffer)
+    rdd5.saveAsTextFile("c://testData//out3")
     sc.stop()
   }
 }
