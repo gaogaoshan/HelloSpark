@@ -1,14 +1,15 @@
 package cn.itcast.spark.work1
 
-import org.apache.spark.rdd.RDD
-import org.apache.spark.{SparkConf, SparkContext}
+import java.sql.DriverManager
+
+import org.apache.spark.rdd.{JdbcRDD, RDD}
 import org.apache.spark.sql._
+import org.apache.spark.{SparkConf, SparkContext}
 
 /**
   * Created by Administrator on 2017/4/24.
   */
-object LSQS {
-
+object Traffic {
 
 
 
@@ -21,7 +22,6 @@ object LSQS {
 
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
-    import sqlContext.implicits._
 //    val sparkconf = new SparkConf().setAppName("LSQS").setMaster("local[*]")
 //    val sparkSession = SparkSession.builder().config(sparkconf).getOrCreate()
 
@@ -33,17 +33,18 @@ object LSQS {
 // =======================================================================================================================================
     //读取数据文件 /hdfs/logs/logformat/traffic/dt=2017042400 ||  hdfs:/logs/logformat/traffic/dt=20170424* ||   C:/testData/traffic/2017042400/
     val parquetFile=sqlContext.read.parquet("hdfs:/logs/logformat/traffic").registerTempTable("traffic_log")
-    val selectDf=sqlContext.sql("select ssid,referurl,url,svn,suv from traffic_log where dt> '2017010100' and dt<'2017032123' ")
+    val selectDf=sqlContext.sql("select ssid,suv,referdomain,domain,svn from traffic_log where dt> '2017010100' and dt<'2017032123' ")
+//    val selectDf=sqlContext.sql("select ssid,suv,referdomain,url,svn from traffic_log where dt> '2017010100' and dt<'2017032123' ")
 
 //    val parquetFile=sqlContext.read.parquet("hdfs:/logs/logformat/traffic/dt=2017042400")
 //    val selectDf=parquetFile.select("ssid","referurl","url","svn","suv").cache()
 
 
-    val aaa = selectDf.filter(selectDf("referurl").contains("17173.com") && selectDf("url").contains("yeyou.com")).select("ssid").distinct()
-    val bbb = selectDf.filter(selectDf("referurl").contains("yeyou.com")).select("ssid", "referurl", "url", "svn", "suv")
+    val aaa = selectDf.filter(selectDf("referdomain").contains("17173.com") && selectDf("domain").contains("yeyou.com")).select("ssid").distinct()
+    val bbb = selectDf.filter(selectDf("referdomain").contains("yeyou.com"))
     //找到173到yeyou之后，访问的哪些页面
-    val fromYeyou_SidRdd: RDD[((Any, Any), (Any, Any, String))] = bbb.join(aaa, aaa("ssid") === bbb("ssid")).rdd.map(row => {
-      ((row(0), row(4)), (row(1), row(2), row(3).toString))
+    val fromYeyou_SidRdd: RDD[((Any, Any), (Any, String))] = bbb.join(aaa, aaa("ssid") === bbb("ssid")).rdd.map(row => {
+      ((row(0), row(1)), (row(3), row(4).toString))
     })
 
 
@@ -56,8 +57,9 @@ object LSQS {
       val sid=sidLine._1._1
       val suv=sidLine._1._2
       val s_List=sidLine._2
-      val s_sort_List=s_List.toList.sortBy(x=>x._3).take(3)
-      val sid_urls =s_sort_List.map(x=> x._2.toString )//只取url
+
+      val s_sort_List=s_List.toList.sortBy(x=>x._2).take(3)
+      val sid_urls =s_sort_List.map(x=> x._1.toString )//只取url
       // Array[((String,String), List[(String, Int)])]=Array((ssid,suv）, List((url1,1), (url2,2), (url3,3))))
       ((sid.toString,suv.toString) ,sid_urls.zipWithIndex)
     }).cache()
@@ -94,11 +96,12 @@ object LSQS {
 //    PV UV join  根据PV排序===================================================================================================================
       val joinRusult: RDD[((String, Int), (Int, Int))] = reducePVUrl.join(reduceUvUrl).sortBy(x=>x._2._1,false)
       //第几次访问，url,pv,uv
-      val mapRusult: RDD[(Int, String, Int, Int)] = joinRusult.map(x=>(x._1._2,x._1._1,x._2._1,x._2._2))
+      val mapRusult: RDD[String] = joinRusult.map(x=>({
+        x._1._2.toString.toInt+1+","   +x._1._1+","   +x._2._1+","    +x._2._2
+      }))
 
 
-      mapRusult.saveAsTextFile("hdfs:/tmp/hugsh/laoqu/wc02")//  /hdfs/tmp/hugsh/laoqu
-
+      mapRusult.saveAsTextFile("hdfs:/tmp/hugsh/laoqu/wc03")//  /hdfs/tmp/hugsh/laoqu
 
 
   }
