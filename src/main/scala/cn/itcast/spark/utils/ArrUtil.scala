@@ -25,7 +25,7 @@ object ArrUtil {
         }
       }
     )
-     _take3
+    _take3
   }
 
 
@@ -50,7 +50,7 @@ object ArrUtil {
 
     val arr1: List[(String, String, String)] = List(("url1", "baidu", "1"), ("url2", "17173", "2"), ("url3", "17173", "3"),
       ("url4", "17173", "4"),("url5", "17173", "5"),("url6", "17173", "6"))
-    val arr2: List[(String, String, String)] = List(("url11", "baidu", "1"), ("url12", "183", "2"), ("url13", "baidu", "3"))
+    val arr2: List[(String, String, String)] = List(("url11", "baidu", "1"), ("url12", "cc", "2"), ("url13", "baidu", "3"))
     val arrs = List(arr1,arr2)
     val r=arrs.flatMap(x=>{
       val _3take: List[(String, String, String)] = take3(x,"17173")
@@ -61,6 +61,6 @@ object ArrUtil {
       } else
         None
     })
-    print("ffff="+r.toBuffer)
+    print("vvvv="+r.toBuffer)
   }
 }

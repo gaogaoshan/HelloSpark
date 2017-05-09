@@ -44,19 +44,24 @@ object DBUtil {
   val tableName="STAT_ADV";//select fiels from sourceDBName  可以直接在这边过滤查询数据
 
 
-def  getAdsCode_Name(sqlContext: SQLContext): Map[String, String] ={
+  /**
+    * //“numPartitions” ->”5”,”partitionColumn”->”OBJECTID”,”lowerBound”->”0”,”upperBound”->”80000000”
+    * @param sqlContext
+    * @return
+    */
+  def  getAdsCode_Name(sqlContext: SQLContext): Map[String, String] ={
 
-  val jdbcDF = sqlContext.read.format("jdbc").options(Map(
-    "driver" -> driver, "url" -> url, "user" -> userName, "password" -> password,
-    "dbtable" -> tableName)).load()//“numPartitions” ->”5”,”partitionColumn”->”OBJECTID”,”lowerBound”->”0”,”upperBound”->”80000000”
+    val jdbcDF = sqlContext.read.format("jdbc").options(Map(
+      "driver"-> driver, "url" -> url, "user" -> userName, "password" -> password,
+      "dbtable" -> tableName)).load()
 
-//  jdbcDF.take(3)
+    //  jdbcDF.take(3)
 
-  jdbcDF.createOrReplaceTempView("STAT_ADV")
-  val adsCodeName: RDD[(String, String)] = sqlContext.sql(sql).rdd.map(r => (r(0).toString, r(1).toString))
+    jdbcDF.createOrReplaceTempView("STAT_ADV")
+    val adsCodeName: RDD[(String, String)] = sqlContext.sql(sql).rdd.map(r => (r(0).toString, r(1).toString))
 
-  adsCodeName.collectAsMap()
-}
+    adsCodeName.collectAsMap()
+  }
 
 
 
