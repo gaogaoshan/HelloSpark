@@ -31,16 +31,16 @@ object Traffic {
 // =======================================================================================================================================
     //读取数据文件 /hdfs/logs/logformat/traffic/dt=2017042400 ||  hdfs:/logs/logformat/traffic/dt=20170424* ||   C:/testData/traffic/2017042400/
     val parquetFile=sqlContext.read.parquet("hdfs:/logs/logformat/traffic").registerTempTable("traffic_log")
-    val selectDf=sqlContext.sql("select ssid,suv,referdomain,domain,svn from traffic_log where dt> '2017010100' and dt<'2017032123' ")
-//    val selectDf=sqlContext.sql("select ssid,suv,referdomain,url,svn from traffic_log where dt> '2017010100' and dt<'2017032123' ")
+//    val selectDf=sqlContext.sql("select ssid,suv,referdomain,domain,svn from traffic_log where dt> '2017010100' and dt<'2017032123' ")
+    val selectDf=sqlContext.sql("select ssid,suv,referdomain,url,svn from traffic_log where dt> '2017010100' and dt<'2017032123' ")
 
 //    val parquetFile=sqlContext.read.parquet("hdfs:/logs/logformat/traffic/dt=2017042400")
 //    val selectDf=parquetFile.select("ssid","referurl","url","svn","suv").cache()
 
 
-    val aaa = selectDf.filter(selectDf("referdomain").contains("17173.com") && selectDf("domain").contains("yeyou.com")).select("ssid").distinct()
+    val aaa = selectDf.filter(selectDf("referdomain").contains("www.17173.com") && selectDf("url").contains("yeyou.com")).select("ssid").distinct()
     val bbb = selectDf.filter(selectDf("referdomain").contains("yeyou.com"))
-    //找到173到yeyou之后，访问的哪些页面
+    //找到173到yeyou之后，访问的哪些页面(domain,svn)       //domain_count=2945840    url_count=2945840
     val fromYeyou_SidRdd: RDD[((Any, Any), (Any, String))] = bbb.join(aaa, aaa("ssid") === bbb("ssid")).rdd.map(row => {
       ((row(0), row(1)), (row(3), row(4).toString))
     })
@@ -50,7 +50,7 @@ object Traffic {
     val fromYeyou_SidGroupRdd=fromYeyou_SidRdd.groupByKey()//（ssid,suv）
 
 
-    //上面根据用户分组后，组内排序，取前三和点击（url和点击序号），   Array((ssid,suv）, List((url1,1), (url2,2), (url3,3))))
+    //上面根据用户分组后，组内排序，取前三和点击（url和点击序号），   Array((ssid,suv）, List((url1,1), (url2,2), (url3,3))))         url_count=556476
     val sid_3Url_Rdd=fromYeyou_SidGroupRdd.map(sidLine=>{
       val sid=sidLine._1._1
       val suv=sidLine._1._2
@@ -71,7 +71,7 @@ object Traffic {
         val flat_PVUrl: RDD[((String, Int), Int)] = sid_3Url_Rdd.flatMap(x => {
           x._2.map(x => (x, 1))
         })
-        val reducePVUrl: RDD[((String, Int), Int)] = flat_PVUrl.reduceByKey(_ + _).sortBy(x => x._2, false).cache()//reducePVUrl_cache
+        val reducePVUrl: RDD[((String, Int), Int)] = flat_PVUrl.reduceByKey(_ + _).sortBy(x => x._2, false).cache()
 
 
  //   UV===================================================================================================================
@@ -92,14 +92,14 @@ object Traffic {
 
 
 //    PV UV join  根据PV排序===================================================================================================================
-      val joinRusult: RDD[((String, Int), (Int, Int))] = reducePVUrl.join(reduceUvUrl).sortBy(x=>x._2._1,false)
+      val joinRusult: RDD[((String, Int), (Int, Int))] = reducePVUrl.join(reduceUvUrl).sortBy(x=>x._2._1,false)// url_count=85127
       //第几次访问，url,pv,uv
       val mapRusult: RDD[String] = joinRusult.map(x=>({
         x._1._2.toString.toInt+1+","   +x._1._1+","   +x._2._1+","    +x._2._2
       }))
 
 
-      mapRusult.saveAsTextFile("hdfs:/tmp/hugsh/laoqu/wc03")//  /hdfs/tmp/hugsh/laoqu
+      mapRusult.saveAsTextFile("hdfs:/tmp/hugsh/laoqu/t_url_take3_2")//  /hdfs/tmp/hugsh/laoqu
 
 
   }

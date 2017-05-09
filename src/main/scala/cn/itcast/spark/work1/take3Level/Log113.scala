@@ -1,4 +1,4 @@
-package cn.itcast.spark.work1
+package cn.itcast.spark.work1.take3Level
 
 import cn.itcast.spark.utils.{ArrUtil, DBUtil}
 import org.apache.spark.rdd.RDD
@@ -10,7 +10,7 @@ import scala.collection.Map
 /**
   * Created by Administrator on 2017/4/24.
   */
-object LSQS {
+object Log113 {
 
   /**
     * 统计从17173到yeyou后的三次点击
@@ -23,25 +23,23 @@ object LSQS {
       .setAppName("SQLDemo").setMaster("local[2]")
       .set("spark.storage.memoryFraction", "0.5")
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-    // .registerKryoClasses(new Class[]{})
 
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
 
     // =======================================================================================================================================
     //读取数据文件 hdfs:/logs/logapi/113/ddate=20170424 ||  hdfs:/logs/logformat/113/dt=20170424* ||   /hdfs/logs/logapi/113/dt=20170424
-//    val parquetFile=sqlContext.read.parquet("hdfs:/logs/logapi/113").registerTempTable("113_log")
-//    val selectDf=sqlContext.sql("select ssid,uv,ads_code,url,ref_url,svn from 113_log where ddate> '20170101' and ddate<'20170321' ")
+    val parquetFile=sqlContext.read.parquet("hdfs:/logs/logapi/113").registerTempTable("113_log")
+    val selectDf=sqlContext.sql("select ssid,uv,ads_code,url,ref_url,svn from 113_log where ddate> '20170101' and ddate<'20170321' ")
 
-        val parquetFile=sqlContext.read.parquet("hdfs:/logs/logapi/113/*20170303*")
-        val selectDf=parquetFile.select("ssid","uv","ads_code","url","ref_url","svn").cache()
+//        val parquetFile=sqlContext.read.parquet("hdfs:/logs/logapi/113/*20170303*")
+//        val selectDf=parquetFile.select("ssid","uv","ads_code","url","ref_url","svn").cache()
 
 
     val aaa = selectDf.filter(selectDf("ref_url").contains("www.17173.com") && selectDf("url").contains("yeyou.com")).select("ssid").distinct()
-//    val bbb = selectDf.filter(selectDf("ref_url").contains("yeyou.com"))
     //找到173到yeyou之后，访问的哪些页面(用来源是yeyou的页面 join  173到yeyou的sid)
-    val fromYeyou_SidRdd: RDD[((Any, Any), (String,String, String))] = selectDf.join(aaa, aaa("ssid") === selectDf("ssid")).rdd.map(row => {
-      ((row(0), row(1)), (row(2).toString, row(4).toString(), row(5).toString))//(ssid,uv),(ads_code,ref_url，svn)
+    val fromYeyou_SidRdd: RDD[((Any, Any), (String,String,String, String))] = selectDf.join(aaa, aaa("ssid") === selectDf("ssid")).rdd.map(row => {
+      ((row(0), row(1)), (row(2).toString,row(3).toString, row(4).toString(), row(5).toString))//(ssid,uv),(ads_code,url,ref_url，svn)
     })
 
     //根据（ssid,suv）分组， 得到用户点击轨迹
@@ -51,10 +49,10 @@ object LSQS {
     val sid_3Url_Rdd: RDD[((String, String), List[(String, Int)])] = fromYeyou_SidGroupRdd.flatMap(sidLine => {
       val sid = sidLine._1._1
       val suv = sidLine._1._2
-      val s_List = sidLine._2 //List[(url,referdomain,svn),.....]
+      val s_List = sidLine._2 //List[(ads_code,url,ref_url，svn),.....]
 
-      val s_sort_List: List[(String, String, String)] = s_List.toList.sortBy(x => x._3)
-      val _3take: List[(String, String, String)] = ArrUtil.take3(s_sort_List, "www.17173.com")
+      val s_sort_List: List[(String, String,String, String)] = s_List.toList.sortBy(x => x._4)
+      val _3take: List[(String, String,String, String)] = ArrUtil.take3_2(s_sort_List, "www.17173.com","yeyou.com")
 
         if (!_3take.isEmpty) {
           val sid_urls = _3take.map(x => x._1.toString) //只取ads_code
@@ -64,10 +62,6 @@ object LSQS {
 
     })//.filter(_ != None).cache()
     //上面根据用户分组后，组内排序，取前三和点击（url和点击序号），   Array((ssid,suv）, List((ads1,1), (ads2,2), (ads3,3))))
-
-
-
-
 
 
     //    PV===================================================================================================================
@@ -105,70 +99,12 @@ object LSQS {
     val adsCodeNameBroadCast = sc.broadcast(adsCodeName).value
 
     val mapRusult: RDD[String] = joinRusult.map(x => {
-      x._1._2 + "," + adsCodeNameBroadCast.getOrElse(x._1._1, x._1._1) + ","
-      +x._2._1 + "," + x._2._2
+      x._1._2.toString.toInt+1 + "," + adsCodeNameBroadCast.getOrElse(x._1._1, x._1._1) + "," +x._2._1 + "," + x._2._2
     })
 
-    mapRusult.saveAsTextFile("hdfs:/tmp/hugsh/laoqu/113-02")//  /hdfs/tmp/hugsh/laoqu
-
-
+    mapRusult.saveAsTextFile("hdfs:/tmp/hugsh/laoqu/113_levelResult")//  /hdfs/tmp/hugsh/laoqu
 
   }
-
-
-
-  //  //173到yeyou的ssid--做小表字典用  //正常是[ssid]数组，要(0)选出来变成ssid
-  //  val _173ToYeyou_Sid: Array[String] = selectDf.filter(selectDf("referurl").contains("17173.com") && selectDf("url").contains("yeyou.com"))
-  //    .select("ssid").distinct()
-  //    .rdd.map(x => x(0).toString).collect()
-  //  //广播规则
-  //  val sidBroadCast = sc.broadcast(_173ToYeyou_Sid)
-  //  //从yeyou主页点击的页面  //用Some外面要FlatMap
-  //  val fromYeyou_SidRdd=selectDf.filter(selectDf("referurl").contains("http://www.yeyou.com/")).rdd.
-  //    flatMap{line =>
-  //      val ssid = line(0)
-  //      if (sidBroadCast.value.contains(ssid)) Some((line(0),line(4)), (line(1), line(2), line(3).toString))
-  //      else  None
-  //    }
-  //  //.filter(_ != None)  Array((（ssid,suv）,(referurl,url,svn)),(),())
-
-
-  // case class sidObject(ssid: String, referurl: String, url: String, addtime: String, svn: String) extends Serializable
-  //  Name		Type	  Comment
-  //    1		  ip			  string	Add a comment...
-  //    2		  iploc		  string	地域编码
-  //    3		  area		  struct<COUNTRY:string,PROVINCE:string,CITY:string>	{country:国家,province:省份,city:城市}
-  //    4		  tids		  struct<SITEIDS:array<int>,CNLIDS:array<int>,COLIDS:array<int>,GIDS:array<int>>	{siteIds:站点id列表,cnlIds:频道id列表,colIds:栏目id列表,gids:组id列表}
-  //    5		  url			  string	当前url
-  //    6		  clickurl	string	点击的模块url
-  //    7		  domain		string	当前域名
-  //    8		  randomstr	string	随机值
-  //    9		  suv			  string	uv
-  //    10		isnewer			是否新用户(0/1:旧/新)
-  //    11		referurl	string	来源url
-  //    12		referdomain	string	来源域名
-  //    13		refer		  struct<REFERTYPE:int,SEARCHTYPE:int>	{referType:来源类型(1:直接来源,2:搜索引擎,3:站内来源,4:外部来源),searchType:搜索引擎类型}
-  //    14		modules		array<struct<ADSCODE:string,POS:string>>	[{adsCode:模块code,pos:点击的模块索引}, ....]
-  //    15		kw			  string	搜索关键字
-  //    16		ua			  string	user-agent
-  //    17		ol			  int	时长
-  //    18		ssid		  string	会话id
-  //    19		svn			  int	点击的第几个模块
-  //    20		uid			  string	用户id
-  //    21		clitype		int	pc/mobile:1/2
-  //    22		addtime		string	点击时间
-  //    23		day			  string	yyyymmdd
-  //    24		hour		  int	HH
-  //    25		dt			  string	Add a comment...
-
-  //  object OrderContext {
-  //    implicit val sidTimeOrdering  = new Ordering[sidObject] {
-  //      override def compare(x: sidObject, y: sidObject): Int = {
-  //        if(x.svn > y.svn) 1
-  //        else -1
-  //      }
-  //    }
-  //  }
 
 
 }

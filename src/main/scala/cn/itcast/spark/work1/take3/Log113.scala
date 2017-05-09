@@ -94,7 +94,7 @@ object Log113 {
       val adsCodeNameBroadCast = sc.broadcast(adsCodeName).value
 
     val mapRusult: RDD[String] = joinRusult.map(x => {
-      x._1._2 + "," + adsCodeNameBroadCast.getOrElse(x._1._1, x._1._1) + ","
+      x._1._2.toString.toInt+1 + "," + adsCodeNameBroadCast.getOrElse(x._1._1, x._1._1) + ","
       +x._2._1 + "," + x._2._2
     })
 

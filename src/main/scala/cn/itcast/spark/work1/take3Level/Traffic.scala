@@ -1,8 +1,7 @@
-package cn.itcast.spark.work1
+package cn.itcast.spark.work1.take3Level
 
-import java.sql.DriverManager
-
-import org.apache.spark.rdd.{JdbcRDD, RDD}
+import cn.itcast.spark.utils.ArrUtil
+import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
 import org.apache.spark.{SparkConf, SparkContext}
 
@@ -22,46 +21,44 @@ object Traffic {
 
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
-//    val sparkconf = new SparkConf().setAppName("LSQS").setMaster("local[*]")
-//    val sparkSession = SparkSession.builder().config(sparkconf).getOrCreate()
 
-    //读取Hive表数据 2017.1.1-2017.3.21.
-//    val sqlResult: DataFrame = sqlContext.sql("select ssid,referurl,url,svn,suv from traffic_log where dt> '2017010100' and dt<'2017032123' ")
-//    val selectDf=sqlResult.select("ssid","referurl","url","svn","suv")
-//    sqlResult.printSchema()
-//    sqlResult.show()
 // =======================================================================================================================================
     //读取数据文件 /hdfs/logs/logformat/traffic/dt=2017042400 ||  hdfs:/logs/logformat/traffic/dt=20170424* ||   C:/testData/traffic/2017042400/
     val parquetFile=sqlContext.read.parquet("hdfs:/logs/logformat/traffic").registerTempTable("traffic_log")
-    val selectDf=sqlContext.sql("select ssid,suv,referdomain,domain,svn from traffic_log where dt> '2017010100' and dt<'2017032123' ")
-//    val selectDf=sqlContext.sql("select ssid,suv,referdomain,url,svn from traffic_log where dt> '2017010100' and dt<'2017032123' ")
+//    val selectDf=sqlContext.sql("select ssid,suv,domain,referdomain,svn from traffic_log where dt> '2017010100' and dt<'2017032123' ")
+    val selectDf=sqlContext.sql("select ssid,suv,url,referdomain,svn from traffic_log where dt> '2017010100' and dt<'2017032123' ")
 
 //    val parquetFile=sqlContext.read.parquet("hdfs:/logs/logformat/traffic/dt=2017042400")
-//    val selectDf=parquetFile.select("ssid","referurl","url","svn","suv").cache()
+//    val selectDf=parquetFile.select("ssid","suv","url","referurl","svn").cache()
 
 
-    val aaa = selectDf.filter(selectDf("referdomain").contains("17173.com") && selectDf("domain").contains("yeyou.com")).select("ssid").distinct()
-    val bbb = selectDf.filter(selectDf("referdomain").contains("yeyou.com"))
-    //找到173到yeyou之后，访问的哪些页面
-    val fromYeyou_SidRdd: RDD[((Any, Any), (Any, String))] = bbb.join(aaa, aaa("ssid") === bbb("ssid")).rdd.map(row => {
-      ((row(0), row(1)), (row(3), row(4).toString))
+    val aaa = selectDf.filter(selectDf("referdomain").contains("www.17173.com") && selectDf("url").contains("yeyou.com")).select("ssid").distinct()
+    //找到173到yeyou之后，访问的哪些页面(domain,referdomain,svn)
+    val fromYeyou_SidRdd: RDD[((Any, Any), (String,String, String))] = selectDf.join(aaa, aaa("ssid") === selectDf("ssid")).rdd.map(row => {
+      ((row(0), row(1)), (row(2).toString,row(3).toString, row(4).toString))
     })
 
 
-    //根据（ssid,suv）分组， 得到用户点击轨迹
+    //根据（ssid,suv）分组， 得到用户点击轨迹 (domain,referdomain,svn)
     val fromYeyou_SidGroupRdd=fromYeyou_SidRdd.groupByKey()//（ssid,suv）
 
 
-    //上面根据用户分组后，组内排序，取前三和点击（url和点击序号），   Array((ssid,suv）, List((url1,1), (url2,2), (url3,3))))
-    val sid_3Url_Rdd=fromYeyou_SidGroupRdd.map(sidLine=>{
+    //上面根据用户分组后，组内排序，取前三和点击（url和点击序号）
+    val sid_3Url_Rdd=fromYeyou_SidGroupRdd.flatMap(sidLine=>{
       val sid=sidLine._1._1
       val suv=sidLine._1._2
       val s_List=sidLine._2
 
-      val s_sort_List=s_List.toList.sortBy(x=>x._2).take(3)
-      val sid_urls =s_sort_List.map(x=> x._1.toString )//只取url
-      // Array[((String,String), List[(String, Int)])]=Array((ssid,suv）, List((url1,1), (url2,2), (url3,3))))
-      ((sid.toString,suv.toString) ,sid_urls.zipWithIndex)
+      val s_sort_List=s_List.toList.sortBy(x=>x._3)
+
+      val _3take: List[(String, String, String)] = ArrUtil.take3(s_sort_List, "www.17173.com" ,"yeyou.com")
+
+      if (!_3take.isEmpty) {
+        val sid_urls = _3take.map(x => x._1.toString) //只取domain
+        Some((sid.toString, suv.toString), sid_urls.zipWithIndex)// Array[((String,String), List[(String, Int)])]=Array((ssid,suv）, List((ads1,1), (ads2,2), (ads3,3))))
+      } else
+        None
+
     }).cache()
 
 
@@ -101,7 +98,7 @@ object Traffic {
       }))
 
 
-      mapRusult.saveAsTextFile("hdfs:/tmp/hugsh/laoqu/wc03")//  /hdfs/tmp/hugsh/laoqu
+      mapRusult.saveAsTextFile("hdfs:/tmp/hugsh/laoqu/t_url")//  /hdfs/tmp/hugsh/laoqu
 
 
   }
