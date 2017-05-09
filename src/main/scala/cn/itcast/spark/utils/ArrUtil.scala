@@ -1,5 +1,5 @@
 package cn.itcast.spark.utils
-import util.control.Breaks._
+import scala.util.control.Breaks._
 /**
   * Created by Administrator on 2017/5/8.
   */
@@ -27,23 +27,6 @@ object ArrUtil {
     )
     _take3
   }
-
-
-  def take3FromArrayString(arry:Array[String]) ={
-    var _take3: List[String] = List.empty
-
-    for (i <-arry.zipWithIndex){
-      if(i._1=="rain"){
-        var index:Int=i._2//当前索引后取后3个
-        var tmp=for(step <- 1 to 3; if(index + step < arry.length) )
-          yield arry(index + step)
-
-        _take3=tmp.toList
-      }
-    }
-    _take3
-  }
-
 
 
   def main(args: Array[String]): Unit = {
