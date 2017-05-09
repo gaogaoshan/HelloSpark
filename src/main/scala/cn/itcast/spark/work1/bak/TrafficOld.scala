@@ -1,4 +1,4 @@
-package cn.itcast.spark.work1
+package cn.itcast.spark.work1.bak
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SQLContext
@@ -42,11 +42,14 @@ object TrafficOld {
 
 //    selectDf.rdd.filter(f=>_173ToYeyou_Sid.contains(_(0)))
     //从yeyou主页点击的页面  //用Some外面要FlatMap
-    val fromYeyou_SidRdd=selectDf.filter(selectDf("referurl").contains("http://www.yeyou.com/")).rdd.
-      flatMap{line =>
-          val ssid = line(0)
-          if (sidBroadcast.contains(ssid)) Some((line(0),line(4)), (line(1), line(2), line(3).toString))
-          else  None
+
+    val fromYeyou_SidRdd: RDD[((Any, Any), (Any, Any, String))] = selectDf.filter(selectDf("referurl").contains("http://www.yeyou.com/")).rdd.
+      flatMap { line =>
+        val ssid = line(0)
+        if (sidBroadcast.contains(ssid))
+          Some((line(0), line(4)), (line(1), line(2), line(3).toString))
+        else
+          None
       }
     //.filter(_ != None)  Array((（ssid,suv）,(referurl,url,svn)),(),())
 
