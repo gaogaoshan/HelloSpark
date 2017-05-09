@@ -54,11 +54,10 @@ object LSQS {
       val s_List = sidLine._2 //List[(url,referdomain,svn),.....]
 
       val s_sort_List: List[(String, String, String)] = s_List.toList.sortBy(x => x._3)
-//      val _3take: List[(String, String, String)] = take3(s_sort_List, "17173.com")
       val _3take: List[(String, String, String)] = ArrUtil.take3(s_sort_List, "www.17173.com")
 
         if (!_3take.isEmpty) {
-          val sid_urls = s_sort_List.map(x => x._1.toString) //只取ads_code
+          val sid_urls = _3take.map(x => x._1.toString) //只取ads_code
           Some((sid.toString, suv.toString), sid_urls.zipWithIndex)// Array[((String,String), List[(String, Int)])]=Array((ssid,suv）, List((ads1,1), (ads2,2), (ads3,3))))
         } else
           None
