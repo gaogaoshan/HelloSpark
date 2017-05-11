@@ -95,7 +95,7 @@ object Log113 {
     val joinRusult: RDD[((String, Int), (Int, Int))] = reducePVUrl.join(reduceUvUrl).sortBy(x=>x._2._1,false)
 
     //翻译模块名称
-    val adsCodeName: Map[String, String] = DBUtil.getAdsCode_Name(sqlContext)
+    val adsCodeName: Map[String, String] = DBUtil.getAdsCode_Name(sqlContext).collectAsMap()
     val adsCodeNameBroadCast = sc.broadcast(adsCodeName).value
 
     val mapRusult: RDD[String] = joinRusult.map(x => {
