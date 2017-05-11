@@ -89,12 +89,12 @@ object Take3FromMXD {
     })
 
 
-      resultRdd.saveAsTextFile("hdfs:/tmp/hugsh/laoqu/mxd2")//  /hdfs/tmp/hugsh/laoqu
+      resultRdd.saveAsTextFile("hdfs:/tmp/hugsh/laoqu/mxd3")
 
 
 
-    val selectData=sqlContext.sql("select ssid,url,ads_code,click_url,svn,ts  from 113_log  order by ts")
-    selectData.rdd.saveAsTextFile("hdfs:/tmp/hugsh/laoqu/t2")
+    val selectData11=sqlContext.sql("select ssid,url,ads_code,click_url,svn,ts  from 113_log  order by ts")
+    selectData11.rdd.saveAsTextFile("hdfs:/tmp/hugsh/laoqu/t3")
 
   }
 
