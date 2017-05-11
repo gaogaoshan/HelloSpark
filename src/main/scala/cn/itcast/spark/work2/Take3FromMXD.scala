@@ -13,8 +13,8 @@ object Take3FromMXD {
 
   /**
     *当前索引后取后4个
-    * @param arry List[(url,ads_code,click_url,svn),.....]  url like %www.17173.com%   click_url=http://newgame.17173.com/game-info-1000219.html
-    * @return  (String, List[String]) --- (ads_code,List(url1,url2,url3))
+    * @param arry List[(url,ads_code,click_url,ts),.....]  url like %www.17173.com%   click_url=http://newgame.17173.com/game-info-1000219.html
+    * @return  (String, List[String]) --- (ads_code,List(click_url1,click_url2,click_url3))
     */
   def take3(arry: List[(String, String, String,String)]):(String, List[String]) ={
     var _take4Url: List[String] = List.empty
@@ -28,7 +28,7 @@ object Take3FromMXD {
 
           val index:Int=i._2
           ads_code=code
-          val tmp=for(step <- 1 to 4; if(index + step < arry.length) ) yield arry(index + step)._1
+          val tmp=for(step <- 1 to 4; if(index + step < arry.length) ) yield arry(index + step)._3
 
           _take4Url=tmp.toList
           break()
@@ -70,7 +70,7 @@ object Take3FromMXD {
 
 
    //2.用全部数据和1的结果关联得到 满足条件用户的的点击轨迹  allData.count()=3917661
-    val allData=sqlContext.sql("select ssid,url,ads_code,click_url,svn from 113_log  ")
+    val allData=sqlContext.sql("select ssid,url,ads_code,click_url,ts from 113_log  ")
     val joinRdd: RDD[(Any, (String, String, String, String))] = allData.join(uvSet, "ssid").rdd.map(r => (r(0), (r(1).toString, r(2).toString, r(3).toString, r(4).toString))).cache()
 
 
