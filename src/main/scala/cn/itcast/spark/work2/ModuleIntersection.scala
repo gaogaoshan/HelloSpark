@@ -22,13 +22,13 @@ object ModuleIntersection {
     val sqlContext = new SQLContext(sc)
 
 // =======================================================================================================================================
-    //读取数据文件 hdfs:/logs/logapi/113/ddate=20170424 ||  hdfs:/logs/logformat/113/dt=20170424* ||   /hdfs/logs/logapi/113/dt=20170424
+    //读取数据文件 module=hdfs:/logs/logapi/113/ddate=20170424 ||   logapi_113= hdfs:/logs/logformat/113/dt=20170424* ||   /hdfs/logs/logapi/113/dt=20170424
     val parquetFile=sqlContext.read.parquet("hdfs:/logs/logapi/113/*20170307*").createOrReplaceTempView("113_log")
     val fromNewGameRdd=sqlContext.sql("select uv,ads_code from 113_log where url ='http://newgame.17173.com/' ").rdd
 
 
-//  2017年3月7日 捞取newgame.17173.com首页模块用户交
-    //1.过滤= 筛选出来自newgame.17173.com的点击数据    ref_url ==newgame.17173.com
+//  2017年3月7日 捞取newgame.17173.com首页模块用户交集
+    //1.过滤= 筛选出在newgame.17173.com的点击数据    url ==newgame.17173.com
     //2.格式化数据  （ads_code,uv）变成（ads_code,Set(uv)） 变成单个元素的Set方便后面 根据ads_code做聚合
     //3.分组= 按照ads_code分组reduce ，Set(uv)做聚合
     //4.过滤= 筛选出需要统计的模块

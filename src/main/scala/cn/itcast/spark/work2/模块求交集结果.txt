@@ -1,0 +1,83 @@
+ g1测试   		"ZvQBbm"->"2016_新游首页_近期测试"  ,  "Nj2IJr"->"2016_新游首页_端游测试表" ,  "yQZBvq"->"2016_新游首页_手游测试表"  ,
+ g2入库   		"63YJZr"->"2016_新游首页_端游入库"  ,  "fIry6v"->"2016_新游首页_手游入库" ,    "jM77nu"->"2016_新游首页_VR入库"  ,
+
+ g3找游戏   	"UnU3Ij"->"2016_新游首页_找游戏"  ,
+ g4游戏试玩  	"IrmyQj"->"2016_新游首页_游戏试玩"  ,
+ g5图集   		"buuqye"->"2016_新游首页_图集"  ,
+ g6视频   		"BjQRF3"->"2016_新游首页_视频"  ,
+
+ g7热门   		"vuui6j"->"2016_新游首页_热门端游"  ,"vYVZ3u"->"2016_新游首页_热门手游" ,   "qYJnma"->"2016_新游首页_热门VR"  ,
+ g8榜单   		"If6zAf"->"2016_新游首页_手游期待榜"  ,"7FjUji"->"2016_新游首页_端游期待榜"  ,"AFvuQz"->"2016_新游首页_VR热门榜"  ,"Q3qmIz"->"2016_新游首页_VR期待榜"
+  
+  
+ 
+  
+code=buuqye codeName=Some(2016_新游首页_图集) |count=358
+code=qYJnma codeName=Some(2016_新游首页_热门VR) |count=32
+code=vYVZ3u codeName=Some(2016_新游首页_热门手游) |count=25
+code=AFvuQz codeName=Some(2016_新游首页_VR热门榜) |count=64
+code=vuui6j codeName=Some(2016_新游首页_热门端游) |count=434
+code=BjQRF3 codeName=Some(2016_新游首页_视频) |count=198
+code=yQZBvq codeName=Some(2016_新游首页_手游测试表) |count=71
+code=Q3qmIz codeName=Some(2016_新游首页_VR期待榜) |count=34
+code=If6zAf codeName=Some(2016_新游首页_手游期待榜) |count=98
+code=ZvQBbm codeName=Some(2016_新游首页_近期测试) |count=1976
+code=jM77nu codeName=Some(2016_新游首页_VR入库) |count=11
+code=Nj2IJr codeName=Some(2016_新游首页_端游测试表) |count=184
+code=fIry6v codeName=Some(2016_新游首页_手游入库) |count=52
+code=IrmyQj codeName=Some(2016_新游首页_游戏试玩) |count=702
+code=UnU3Ij codeName=Some(2016_新游首页_找游戏) |count=1009
+code=7FjUji codeName=Some(2016_新游首页_端游期待榜) |count=225
+code=63YJZr codeName=Some(2016_新游首页_端游入库) |count=751
+
+scala> println("17Codes has uvs="+ads17Map.flatMap(x => x._2).toList.length)
+17Codes has uvs=6224
+
+
+className=g3找游戏 |count=1009
+className=g1测试 |count=2156
+className=g8榜单 |count=382
+className=g2入库 |count=801
+className=g5图集 |count=358
+className=g6视频 |count=198
+className=g7热门 |count=459
+className=g4游戏试玩 |count=702
+
+
+
+g3找游戏  开始求交集
+   g3找游戏 intersect g1测试 result=279
+   g3找游戏 intersect g8榜单 result=44
+   g3找游戏 intersect g2入库 result=175
+   g3找游戏 intersect g5图集 result=64
+   g3找游戏 intersect g6视频 result=28
+   g3找游戏 intersect g7热门 result=63
+   g3找游戏 intersect g4游戏试玩 result=132
+g1测试  开始求交集
+   g1测试 intersect g8榜单 result=148
+   g1测试 intersect g2入库 result=360
+   g1测试 intersect g5图集 result=142
+   g1测试 intersect g6视频 result=86
+   g1测试 intersect g7热门 result=197
+   g1测试 intersect g4游戏试玩 result=308
+g8榜单  开始求交集
+   g8榜单 intersect g2入库 result=45
+   g8榜单 intersect g5图集 result=53
+   g8榜单 intersect g6视频 result=26
+   g8榜单 intersect g7热门 result=80
+   g8榜单 intersect g4游戏试玩 result=70
+g2入库  开始求交集
+   g2入库 intersect g5图集 result=63
+   g2入库 intersect g6视频 result=37
+   g2入库 intersect g7热门 result=93
+   g2入库 intersect g4游戏试玩 result=170
+g5图集  开始求交集
+   g5图集 intersect g6视频 result=64
+   g5图集 intersect g7热门 result=91
+   g5图集 intersect g4游戏试玩 result=107
+g6视频  开始求交集
+   g6视频 intersect g7热门 result=52
+   g6视频 intersect g4游戏试玩 result=66
+g7热门  开始求交集
+   g7热门 intersect g4游戏试玩 result=149
+g4游戏试玩  开始求交集
