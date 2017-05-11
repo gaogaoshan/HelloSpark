@@ -4,7 +4,7 @@ import scala.collection.mutable.{Map => MMap, Set => SSet}
 /**
   * Created by Administrator on 2017/5/10.
   */
-object AdsCodes {
+object AdsCodes extends Serializable{
 
   val adsClassMap=Map(
     "g1测试"->List("ZvQBbm","Nj2IJr","yQZBvq"),
@@ -14,7 +14,7 @@ object AdsCodes {
     "g5图集"->List("buuqye"),
     "g6视频"->List("BjQRF3"),
     "g7热门"->List("vuui6j","vYVZ3u","qYJnma"),
-    "g8榜单"->List("If6zAf","7FjUji","AnUVRn","AFvuQz","Q3qmIz")
+    "g8榜单"->List("If6zAf","7FjUji","AFvuQz","Q3qmIz")
   )
 
   var adsCodeMap=Map(
@@ -27,7 +27,7 @@ object AdsCodes {
     "BjQRF3"->"2016_新游首页_视频"  ,
 
     "vuui6j"->"2016_新游首页_热门端游"  ,"vYVZ3u"->"2016_新游首页_热门手游" ,   "qYJnma"->"2016_新游首页_热门VR"  ,
-    "If6zAf"->"2016_新游首页_手游期待榜"  ,"7FjUji"->"2016_新游首页_端游期待榜" ,"AnUVRn"->"2017_手游网首页_手游热门榜"  ,"AFvuQz"->"2016_新游首页_VR热门榜"  ,"Q3qmIz"->"2016_新游首页_VR期待榜"
+    "If6zAf"->"2016_新游首页_手游期待榜"  ,"7FjUji"->"2016_新游首页_端游期待榜"  ,"AFvuQz"->"2016_新游首页_VR热门榜"  ,"Q3qmIz"->"2016_新游首页_VR期待榜"
   )
 
   /**
@@ -51,14 +51,21 @@ object AdsCodes {
 
   def main(args: Array[String]): Unit = {
     //val groupList: List[String] = adsClassMap.values.flatMap(x=>x).toList
-    val className:Option[String]=None
 
-    val ss=Set(4).toSet
+    val ads8Class=Map(
+      "g1测试"->Set("g1_1","g1_2","g1_3"),
+      "g2入库"->Set("g2_1","g1_3","g1_1"),
+      "g3找游戏"->Set("g3_1"),
+      "g4游戏试玩"->Set("g4_1"),
+      "g5图集"->Set("g5_1"),
+      "g6视频"->Set("g6_1"),
+      "g7热门"->Set("g7_1","g1_22","g1_2"),
+      "g8榜单"->Set("g8_1","g1_22","g1_3","g1_1")
+    )
+    val s: Option[Set[String]] = ads8Class.get("g7热门")
+    println(s)
+    println(s.get.size)
 
-    val a=MMap("c"->SSet(1,2),"zzz"->SSet(1,2, 1))
-
-    val b = a.getOrElseUpdate("zzz", ss).++=(Set(999,7))
-    println(a)
   }
 
 
