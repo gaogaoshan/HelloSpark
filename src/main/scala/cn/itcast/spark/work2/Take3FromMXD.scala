@@ -38,6 +38,17 @@ object Take3FromMXD {
     (ads_code,_take4Url)
   }
 
+  def getCodeName(code:String): String = {
+    var codeName=
+      code match {
+        case "3a9b3f036a2f571a23e1c499d1477791" =>"新游测试表"
+        case "6273154c808759048e3200c51cbb44b1"=>"新游期待榜"
+        case "9c9f1366edbae758a3bb56eca4388b64"=>"图片导航"
+      }
+
+    codeName
+  }
+
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf()
       .setAppName("SQLDemo").setMaster("local[2]")
@@ -55,7 +66,7 @@ object Take3FromMXD {
 
 //    1.获取满足要求的用户UV集合
     // url like %www.17173.com%
-    // ads_code in【新游测试表】【新游期待榜】【图片导航】  ============【3a9b3f036a2f571a23e1c499d1477791,2014_排行区_测试时间表】 【6273154c808759048e3200c51cbb44b1,2014_排行区_新游期待榜】 【9c9f1366edbae758a3bb56eca4388b64,2016_导航区_游戏图片导航】
+    // ads_code in【新游测试表】【新游期待榜】【图片导航】
     // click_url=http://newgame.17173.com/game-info-1000219.html
 //    2.用全部数据和1的结果关联得到 满足条件用户的的点击轨迹
 //    3.根据UV分组 并按SVN排序  每个分组内取前3次点击
@@ -83,7 +94,9 @@ object Take3FromMXD {
       val code_4urls: (String, List[String]) = take3(sortedClickList) //(ads_code,List(url1,url2,url3))
 
       if (!code_4urls._2.isEmpty) {
-        Some(ssid, code_4urls._1, code_4urls._2)
+        val codeName=getCodeName(code_4urls._1)
+
+        Some(ssid, codeName, code_4urls._2)
       }
       else None
     })
