@@ -4,9 +4,8 @@ package cn.itcast.spark.utils
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.{DataFrame, Row, SQLContext}
-
 import scala.collection.Map
-
+import com.databricks.spark.csv._
 /**
   * Created by Administrator on 2017/5/5.
   */
@@ -47,7 +46,7 @@ object DBUtil {
   /**
     * //“numPartitions” ->”5”,”partitionColumn”->”OBJECTID”,”lowerBound”->”0”,”upperBound”->”80000000”
     */
-  def  getAdsCode_Name(sqlContext: SQLContext):Map[String, String] ={
+  def  getAdsCode_Name(sqlContext: SQLContext):RDD[(String, String)]  ={
 
       val jdbcDF = sqlContext.read.format("jdbc").options(jdbcMap).load()
       //  jdbcDF.take(3)
@@ -55,7 +54,8 @@ object DBUtil {
       jdbcDF.createOrReplaceTempView("STAT_ADV")
       val adsCodeName: RDD[(String, String)] = sqlContext.sql(sql).rdd.map(r => (r(0).toString, r(1).toString))
 
-      adsCodeName.collectAsMap()
+      //adsCodeName.collectAsMap()
+    adsCodeName
   }
 
 
@@ -95,7 +95,11 @@ object DBUtil {
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
 
-//    val adsCodeName: Map[String, String] = getAdsCode_Name(sqlContext)
+    val adsCodeName:RDD[(String, String)] = getAdsCode_Name(sqlContext)
+    adsCodeName.saveAsTextFile("hdfs:/tmp/hugsh/laoqu/adsCodeName")
+
+    sqlContext.csvFile("/tmp/hugsh/laoqu/adsCodeName")
+//    $SPARK_HOME/bin/spark-shell --packages com.databricks:spark-csv_2.10:1.4.0
   }
 
 }

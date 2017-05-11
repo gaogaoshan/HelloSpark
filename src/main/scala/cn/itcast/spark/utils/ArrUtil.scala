@@ -10,12 +10,12 @@ object ArrUtil {
     * @param arry List[(url,referdomain,svn),.....]
     * @return
     */
-  def take3(arry: List[(String, String, String)] ,refDomain:String):List[(String, String, String)] ={
+  def take3(arry: List[(String, String, String)] ,refDomain:String, domain:String):List[(String, String, String)] ={
     var _take3: List[(String, String, String)] = List.empty
 
     breakable(
       for (i <-arry.zipWithIndex){
-        if(i._1._2.contains(refDomain)){
+        if(i._1._1.contains(domain)  && i._1._2.contains(refDomain) ){
 
           val index:Int=i._2
           val tmp=for(step <- 1 to 3; if(index + step < arry.length) ) yield arry(index + step)
@@ -29,6 +29,31 @@ object ArrUtil {
   }
 
 
+  /**
+    *
+    * @param arry (ads_code,url,ref_url，svn)
+    * @param refDomain
+    * @param domain
+    * @return
+    */
+  def take3_2(arry: List[(String, String,String, String)] ,refDomain:String, domain:String):List[(String, String, String,String)] ={
+    var _take3: List[(String, String,String, String)] = List.empty
+
+    breakable(
+      for (i <-arry.zipWithIndex){
+        if( i._1._2.contains(domain)  &&  i._1._3.contains(refDomain) ){
+
+          val index:Int=i._2
+          val tmp=for(step <- 1 to 3; if(index + step < arry.length) ) yield arry(index + step)
+
+          _take3=tmp.toList
+          break()
+        }
+      }
+    )
+    _take3
+  }
+
   def main(args: Array[String]): Unit = {
 
     val arr1: List[(String, String, String)] = List(("url1", "baidu", "1"), ("url2", "17173", "2"), ("url3", "17173", "3"),
@@ -36,7 +61,7 @@ object ArrUtil {
     val arr2: List[(String, String, String)] = List(("url11", "baidu", "1"), ("url12", "cc", "2"), ("url13", "baidu", "3"))
     val arrs = List(arr1,arr2)
     val r=arrs.flatMap(x=>{
-      val _3take: List[(String, String, String)] = take3(x,"17173")
+      val _3take: List[(String, String, String)] = take3(x,"17173","yeyou")
 
       if (!_3take.isEmpty) {
         val sid_urls = _3take.map(x => x._1.toString) //只取ads_code
