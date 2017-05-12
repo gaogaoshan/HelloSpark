@@ -4,7 +4,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
 import org.apache.spark.{SparkConf, SparkContext}
 
-import scala.collection.Map
+import scala.collection.{Map, mutable}
 import scala.collection.mutable.{Map => MMap, Set => SSet}
 import scala.util.control.Breaks._
 
@@ -38,15 +38,23 @@ object Take3FromMXD {
     (ads_code,_take4Url)
   }
 
-  def getCodeName(code:String): String = {
-    var codeName=
-      code match {
-        case "3a9b3f036a2f571a23e1c499d1477791" =>"新游测试表"
-        case "6273154c808759048e3200c51cbb44b1"=>"新游期待榜"
-        case "9c9f1366edbae758a3bb56eca4388b64"=>"图片导航"
-      }
 
+  def getCodeName(code:String): String = {
+    val codeName=
+      code match {
+        case "3a9b3f036a2f571a23e1c499d1477791" =>"测试时间表"
+        case "6273154c808759048e3200c51cbb44b1"=>"新游期待榜"
+        case "9c9f1366edbae758a3bb56eca4388b64"=>"游戏图片导航"
+      }
     codeName
+  }
+
+  def getStringFromList(l:List[String]): String ={
+    var s:String=""
+    l.foreach(x=>{
+      s=s.concat(x).concat(",")
+    })
+    s
   }
 
   def main(args: Array[String]): Unit = {
@@ -72,7 +80,7 @@ object Take3FromMXD {
 //    3.根据UV分组 并按SVN排序  每个分组内取前3次点击
 
 
-    //1.获取满足要求的用户UV集合 uvSet.count()=13474
+    //1.获取满足要求的用户UV集合 uvSet.count()=14217
     val ssidSql="""select distinct ssid from 113_log
              where url like '%www.17173.com%'
              and  ads_code in('3a9b3f036a2f571a23e1c499d1477791','6273154c808759048e3200c51cbb44b1','9c9f1366edbae758a3bb56eca4388b64')
@@ -85,8 +93,9 @@ object Take3FromMXD {
     val joinRdd: RDD[(Any, (String, String, String, String))] = allData.join(uvSet, "ssid").rdd.map(r => (r(0), (r(1).toString, r(2).toString, r(3).toString, r(4).toString))).cache()
 
 
+
     //3.根据UV分组 并按SVN排序  取冒险岛后的4次url (uv,adsCode,urls)
-    val resultRdd: RDD[(Any, String, List[String])] = joinRdd.groupByKey().flatMap(x => {
+    val take4Rdd: RDD[(Any, String, String)] = joinRdd.groupByKey().flatMap(x => {
       val ssid = x._1
       val clickList = x._2 //url,ads_code,click_url,svn
       val sortedClickList = clickList.toList.sortBy(x => x._4)
@@ -94,20 +103,20 @@ object Take3FromMXD {
       val code_4urls: (String, List[String]) = take3(sortedClickList) //(ads_code,List(url1,url2,url3))
 
       if (!code_4urls._2.isEmpty) {
-        val codeName=getCodeName(code_4urls._1)
-
-        Some(ssid, codeName, code_4urls._2)
+        val codeName = getCodeName(code_4urls._1)
+        Some(ssid, codeName, getStringFromList(code_4urls._2))
       }
       else None
     })
 
+    val resultRdd: RDD[String] = take4Rdd.map(x => x._1 + "," + x._2 + "," + x._3)
 
-      resultRdd.saveAsTextFile("hdfs:/tmp/hugsh/laoqu/mxd3")
+    resultRdd.saveAsTextFile("hdfs:/tmp/hugsh/laoqu/mxd4")
 
 
 
-    val selectData11=sqlContext.sql("select ssid,url,ads_code,click_url,svn,ts  from 113_log  order by ts")
-    selectData11.rdd.saveAsTextFile("hdfs:/tmp/hugsh/laoqu/t3")
+//    val selectData11=sqlContext.sql("select ssid,url,ads_code,click_url,svn,ts  from 113_log  order by ts")
+//    selectData11.rdd.saveAsTextFile("hdfs:/tmp/hugsh/laoqu/t3")
 
   }
 
