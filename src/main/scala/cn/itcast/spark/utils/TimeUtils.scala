@@ -5,6 +5,8 @@ import java.util.{Calendar, Date}
 
 import org.apache.commons.lang3.time.FastDateFormat
 
+import scala.collection.mutable.ListBuffer
+
 /**
   * Created by root on 2016/5/23.
   */
@@ -21,15 +23,41 @@ object TimeUtil extends Serializable{
     YEAR+"_"+WEEK_OF_YEAR
   }
 
+  def getWeekList(formWeek:String,toWeek:String):ListBuffer[String] ={
+    var weekSet=ListBuffer[String]()
+    val calendar = Calendar.getInstance()
+    val simpleDateFormat = new SimpleDateFormat("yyyyMMdd")
+    calendar.setTime(simpleDateFormat.parse(formWeek))
+    val FROM_WEEK_OF_YEAR1=calendar.get(Calendar.WEEK_OF_YEAR)
+    calendar.setTime(simpleDateFormat.parse(toWeek))
+    val TO_WEEK_OF_YEAR=calendar.get(Calendar.WEEK_OF_YEAR)
+
+    val From_YEAR=formWeek.take(4)
+    println("from="+FROM_WEEK_OF_YEAR1+" to="+TO_WEEK_OF_YEAR)
+
+    for(i<- FROM_WEEK_OF_YEAR1 to TO_WEEK_OF_YEAR){
+      val year_week=From_YEAR+"_"+i
+      weekSet+=year_week
+    }
+    weekSet
+  }
+
+  def getWeekBetweenYear(formWeek:String,toWeek:String):ListBuffer[String] ={
+    val From_YEAR=formWeek.take(4)
+    val To_YEAR=toWeek.take(4)
+
+      val fromWeekList: ListBuffer[String] =getWeekList(formWeek,From_YEAR+"1231")
+      val toWeekList: ListBuffer[String] =getWeekList(To_YEAR+"0101",toWeek)
+
+      fromWeekList++=toWeekList
+  }
+
   def main(args: Array[String]): Unit = {
     val ddate1="20170305"
     println(getWeekFromData(ddate1))
-    val ddate1_1="20170311"
-    println(getWeekFromData(ddate1_1))
-
-    val ddate2="20170429"
-    println(getWeekFromData(ddate2))
-    val ddate2_1="20170423"
-    println(getWeekFromData(ddate2_1))
-  }
+//    val weekList: ListBuffer[String] = getWeekList("20170507","20170520")
+    val weekList: ListBuffer[String] =TimeUtil.getWeekBetweenYear("20160703","20170429")
+    println(weekList.toBuffer)
+//    2016年7月4日-2017年4月30日
+    }
 }
