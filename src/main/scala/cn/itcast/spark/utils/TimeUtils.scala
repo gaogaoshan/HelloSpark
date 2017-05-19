@@ -22,7 +22,14 @@ object TimeUtil extends Serializable{
   }
 
   def main(args: Array[String]): Unit = {
-    val ddate="20170506"
-    println(getWeekFromData(ddate))
+    val ddate1="20170305"
+    println(getWeekFromData(ddate1))
+    val ddate1_1="20170311"
+    println(getWeekFromData(ddate1_1))
+
+    val ddate2="20170429"
+    println(getWeekFromData(ddate2))
+    val ddate2_1="20170423"
+    println(getWeekFromData(ddate2_1))
   }
 }
