@@ -14,17 +14,18 @@ import scala.collection.mutable.{ListBuffer, Set => SSet}
 object RetentionRate_Traffic {
 
 
-  def  getCountString(weekList:ListBuffer[String],fromWeek:String ,countList: List[Int] ): String ={
+  def  getCountString(weekList:ListBuffer[Int],fromWeek:Int ,countList: List[Int] ): String ={
     var returnString:String =""
     val weekIndex=weekList.indexOf(fromWeek);
 
     for(i <- 1 to weekIndex){
       returnString+="0,"
     }
-    println("weekList="+weekList.toBuffer+" weekIndex="+weekIndex+" returnString="+returnString)
     countList.foreach(returnString+=_+",")
+    println("weekIndex="+weekIndex+" returnString="+returnString)
     returnString.substring(0,returnString.lastIndexOf(","))
   }
+
   def main(args: Array[String]): Unit = {
     val sparkSession: SparkSession = SparkSession.builder.appName("sparkSQL").
       config("spark.sql.warehouse.dir", "/user/hive/warehouse").
@@ -43,7 +44,7 @@ object RetentionRate_Traffic {
     //1
     //    val weeks=List("20170507","20170508","20170509","20170510","20170511","20170512","20170513")
     //    val selectRdd: RDD[Row] = sparkSession.sql("select suv,newuv,refer_domain,search,ddate from traffic where refer_host <> '3' and ddate>='20170507'  and  ddate<='20170513'  ").rdd
-    val weekList: ListBuffer[String] = TimeUtil.getWeekList("20170101", "20170128","yyyyMMdd")
+    val weekList: ListBuffer[Int] = TimeUtil.getWeekList("20170101", "20170128","yyyyMMdd")
     val selectRdd: RDD[Row] = sparkSession.sql("select suv,newuv,refer_domain,search,ddate,cnlid from traffic where refer_host <> '3' and ddate>='20170101'  and  ddate<='20170128'  ").rdd
     val _17173Rdd = selectRdd.filter(f => {
       val cnlIds = f(5).toString.split(",")
@@ -51,11 +52,11 @@ object RetentionRate_Traffic {
     })
 
     //2添加来源字段| 格式化时间字段为周|第一周来的用户全部当中新用户   List[(suv,(refer_type,周，isnew))]
-    val formatRdd: RDD[(String, (String, String, String))] = _17173Rdd.map(r => {
+    val formatRdd: RDD[(String, (String, Int, String))] = _17173Rdd.map(r => {
       val suv = r(0).toString
       var newuv = r(1).toString
       val refer_type = LogFormat.getReferType(r(2).toString, r(3).toString)
-      val ddate = TimeUtil.getWeekFromData(r(4).toString,"yyyyMMdd")
+      val ddate = TimeUtil.getWeekFromData(r(4).toString,"yyyyMMdd").toInt
       if (ddate == weekList(0)) newuv = "1"
 
       (suv, (refer_type, ddate, newuv))
@@ -63,7 +64,7 @@ object RetentionRate_Traffic {
 
     //3聚合用户的来访轨迹(suv,List[(refer_type,周，isnew)])
     //4 用户分组内 按照isnew排序 (suv,List[(refer_type,周，isnew)])
-    val sortUvGroup: RDD[(String, List[(String, String, String)])] = formatRdd.groupByKey().map(g => {
+    val sortUvGroup: RDD[(String, List[(String, Int, String)])] = formatRdd.groupByKey().map(g => {
       val suv = g._1
       val sortList = g._2.toList.sortBy(x => x._3).reverse
       (suv, sortList)
@@ -73,12 +74,12 @@ object RetentionRate_Traffic {
     //5 过滤出要对比的那一周的留存率  比如要算第2周新用户  在3,4,5周的留存
     // 排序后的List 取第一个，【如果周==第2周】&&【isnew==1】    是就说明这个用户是第二周来的  suv,List[(refer_type,周，isnew)
 
-    var resSSet: SSet[(String, String, String, Int)] = SSet() //[ref,fromWeek,toWeek,,count)]
+    var resSSet: SSet[(String, Int, Int, Int)] = SSet() //[ref,fromWeek,toWeek,,count)]
 
     for (x <- 0 until weekList.length) {
 
       val w = weekList(x)
-      val newUvGroup: RDD[(String, List[(String, String, String)])] = sortUvGroup.filter(f => {
+      val newUvGroup: RDD[(String, List[(String, Int, String)])] = sortUvGroup.filter(f => {
         val uvWeek = f._2.head._2
         val uvIsNew = f._2.head._3
         uvWeek == w && uvIsNew == "1"
@@ -86,15 +87,15 @@ object RetentionRate_Traffic {
       println("filter week=" + w + " new UV size=" + newUvGroup.count())
 
       //(refer_type,周),1
-      val refer_week_rdd: RDD[((String, String), Int)] = newUvGroup.flatMap(r => {
-        val ref_week: List[((String, String), Int)] = r._2.map(x => {
+      val refer_week_rdd: RDD[((String, Int), Int)] = newUvGroup.flatMap(r => {
+        val ref_week: List[((String, Int), Int)] = r._2.map(x => {
           ((x._1, x._2), 1)
         }).distinct
         ref_week
       })
-      val refer_week_count: RDD[((String, String), Int)] = refer_week_rdd.reduceByKey(_ + _)
+      val refer_week_count: RDD[((String, Int), Int)] = refer_week_rdd.reduceByKey(_ + _)
 
-      val asMap: Map[(String, String), Int] = refer_week_count.collectAsMap() //(直接来源,2017_19) -> 9565
+      val asMap: Map[(String, Int), Int] = refer_week_count.collectAsMap() //(直接来源,2017_19) -> 9565
       for (elem <- asMap) {
         val ref = elem._1._1.toString; val fromWeek = w; val toWeek = elem._1._2; val count = elem._2
         resSSet.add(ref, fromWeek, toWeek, count) //[ref,fromWeek ,toWeek,count]
@@ -119,11 +120,11 @@ object RetentionRate_Traffic {
     delData.groupBy(f => f._1).map(r => {
       val fromWeek = r._1
       println("ref=" + fromWeek)
-      val from_to_count_Set: SSet[(String, String, Int)] = r._2.map(m => (m._2, m._3, m._4)) //fromWeek,toWeek,count
+      val from_to_count_Set: SSet[(Int, Int, Int)] = r._2.map(m => (m._2, m._3, m._4)) //fromWeek,toWeek,count
 
-      val fromGroup: Map[String, SSet[(String, String, Int)]] = from_to_count_Set.groupBy(f => f._1) //[fromWeek, (fromWeek,toWeek,count)]
+      val fromGroup: Map[Int, SSet[(Int, Int, Int)]] = from_to_count_Set.groupBy(f => f._1) //[fromWeek, (fromWeek,toWeek,count)]
 
-      val from_countString: List[(String, String)] = fromGroup.map(f => {
+      val from_countString: List[(Int, String)] = fromGroup.map(f => {
         val fromWeek = f._1
         val countList: List[Int] = f._2.map(m => (m._2, m._3)).toList.sortBy(x => x._1).map(x => x._2) //toWeek,count
         val countString = getCountString(weekList, fromWeek, countList)
