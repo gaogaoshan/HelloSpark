@@ -56,7 +56,7 @@ object TimeUtil extends Serializable{
     val ddate1="20170305"
     println(getWeekFromData(ddate1))
 //    val weekList: ListBuffer[String] = getWeekList("20170507","20170520")
-    val weekList: ListBuffer[String] =TimeUtil.getWeekBetweenYear("20160703","20170429")
+    val weekList: ListBuffer[String] =TimeUtil.getWeekList("20170101","20170114")
     println(weekList.toBuffer)
 //    2016年7月4日-2017年4月30日
     }
