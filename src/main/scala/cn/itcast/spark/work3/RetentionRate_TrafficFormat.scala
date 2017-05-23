@@ -3,15 +3,13 @@ package cn.itcast.spark.work3
 import cn.itcast.spark.utils.{LogFormat, TimeUtil}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql._
-
-import scala.util.{Failure, Success, Try}
 import java.text.SimpleDateFormat
 import java.util.{Calendar, Date}
 
-import scala.collection.Map
+import scala.collection.{Map, mutable}
 import scala.collection.mutable.{ListBuffer, Set => SSet}
 
-object RetentionRate_Traffic {
+object RetentionRate_TrafficFormat {
 
 
   def  getCountString(weekList:ListBuffer[String],fromWeek:String ,countList: List[Int] ): String ={
@@ -25,6 +23,7 @@ object RetentionRate_Traffic {
     countList.foreach(returnString+=_+",")
     returnString.substring(0,returnString.lastIndexOf(","))
   }
+
   def main(args: Array[String]): Unit = {
     val sparkSession: SparkSession = SparkSession.builder.appName("sparkSQL").
       config("spark.sql.warehouse.dir", "/user/hive/warehouse").
@@ -41,21 +40,25 @@ object RetentionRate_Traffic {
 
 
     //1
-    //    val weeks=List("20170507","20170508","20170509","20170510","20170511","20170512","20170513")
-    //    val selectRdd: RDD[Row] = sparkSession.sql("select suv,newuv,refer_domain,search,ddate from traffic where refer_host <> '3' and ddate>='20170507'  and  ddate<='20170513'  ").rdd
-    val weekList: ListBuffer[String] = TimeUtil.getWeekList("20170101", "20170128","yyyyMMdd")
-    val selectRdd: RDD[Row] = sparkSession.sql("select suv,newuv,refer_domain,search,ddate,cnlid from traffic where refer_host <> '3' and ddate>='20170101'  and  ddate<='20170128'  ").rdd
-    val _17173Rdd = selectRdd.filter(f => {
-      val cnlIds = f(5).toString.split(",")
-      cnlIds.contains("383")
+    val formatString="yyyyMMddHH"
+    val weekList: ListBuffer[String] = TimeUtil.getWeekList("2017010100", "2017042923",formatString)
+    val selectRdd: RDD[Row] = sparkSession.sql("select suv,isnewer,refertype,dt,cnlids from traffic_log where isoutsite <> '1' and dt>='2017010100'  and  dt<='2017042923'  ").rdd
+    val _17173Rdd = selectRdd.filter(f  => {
+      val cnlIdss = f(4).asInstanceOf[mutable.WrappedArray[String]]
+      cnlIdss.toList.contains("383")
     })
 
     //2添加来源字段| 格式化时间字段为周|第一周来的用户全部当中新用户   List[(suv,(refer_type,周，isnew))]
     val formatRdd: RDD[(String, (String, String, String))] = _17173Rdd.map(r => {
       val suv = r(0).toString
       var newuv = r(1).toString
-      val refer_type = LogFormat.getReferType(r(2).toString, r(3).toString)
-      val ddate = TimeUtil.getWeekFromData(r(4).toString,"yyyyMMdd")
+      val refer_type =  r(2).toString  match {
+        case "1"   =>"直接来源"
+        case "2"   =>"搜索引擎"
+        case "3"   =>"站内来源"
+        case "4"   =>"外部来源"
+      }
+      val ddate = TimeUtil.getWeekFromData(r(3).toString,formatString)
       if (ddate == weekList(0)) newuv = "1"
 
       (suv, (refer_type, ddate, newuv))

@@ -47,7 +47,7 @@ object RetentionRate {
       val suv = r(0).toString
       val newuv = r(1).toString
       val refer_type = LogFormat.getReferType(r(2).toString, r(3).toString)
-      val ddate = TimeUtil.getWeekFromData(r(4).toString)
+      val ddate = TimeUtil.getWeekFromData(r(4).toString,"yyyyMMdd")
 
       ((refer_type, ddate), (suv, newuv))
     }).distinct().cache()//persist(StorageLevel.DISK_ONLY)  7513431
