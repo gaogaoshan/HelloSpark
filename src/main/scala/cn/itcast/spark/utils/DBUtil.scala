@@ -60,31 +60,6 @@ object DBUtil {
 
 
 
-//  def getAdsName(sc:SparkContext): Unit ={
-//
-//    val connection = () => {
-//      Class.forName(driver).newInstance()
-//      DriverManager.getConnection(url, userName, password)
-//    }
-//    val jdbcRDD = new JdbcRDD(
-//      sc,
-//      connection,
-//      sql,
-//      lowerBound =Long.MinValue, upperBound =Long.MaxValue, numPartitions =2,
-//      r => {
-//        val id = r.getString(1)
-//        val code = r.getString(2)
-//        (id, code)
-//      }
-//    )
-//    val jrdd = jdbcRDD.collect()
-//    jrdd.take(4)
-//  }
-
-
-
-
-
 
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf()
@@ -101,5 +76,4 @@ object DBUtil {
     sqlContext.csvFile("/tmp/hugsh/laoqu/adsCodeName")
 //    $SPARK_HOME/bin/spark-shell --packages com.databricks:spark-csv_2.10:1.4.0
   }
-
 }
