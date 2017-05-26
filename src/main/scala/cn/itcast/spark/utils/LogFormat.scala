@@ -44,8 +44,9 @@ object LogFormat extends Serializable{
 
   def main(args: Array[String]): Unit = {
     //dnf.17173.com=- lol.qq.com=-  www.baidu.com=1
-    val referType = getReferType("bbs.17173.com","-")
-    println(referType)
+    val referType = getReferType("bbs.17173.com","news.17173.com")
+
+    println("bbs.17173.com".split("\\.").takeRight(2).mkString("."))
   }
 
 }
