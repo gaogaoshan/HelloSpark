@@ -1,0 +1,3 @@
+select  count(1) as pv ,count(distinct(suv)) ,ddate from click  
+where ddate>'20170413' and  ddate<'20170602'  and
+cur_url like 'http://news.17173.com/z/tlbb/%'   and u like  'http://tlbb.qq.com%'  group by ddate
