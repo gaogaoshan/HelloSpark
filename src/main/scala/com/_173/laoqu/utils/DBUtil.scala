@@ -6,7 +6,6 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.{DataFrame, Row, SQLContext, SparkSession}
 
 import scala.collection.Map
-import com.databricks.spark.csv._
 
 object DBUtil {
 

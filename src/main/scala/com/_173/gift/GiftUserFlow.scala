@@ -19,7 +19,7 @@ object GiftUserFlow extends SparkTrait {
    */
   def giftUserFlow(spark: SparkSession, curDate: Int): Unit = {
     val inputFile = appConfig.getString("parquetpath")+"/cur_date="+curDate+"/"
-    val outputFile = appConfig.getString("csvpath")
+    val outputFile = appConfig.getString("csvpath")     //  /hdfs/logs/gp_result/giftAnalytics/
 
     import spark.implicits._
     import org.apache.spark.sql.functions._

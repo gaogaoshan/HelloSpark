@@ -37,16 +37,22 @@ object GiftBehavior extends SparkTrait {
    */
   def giftBehaviorLog(spark: SparkSession, curDate: Int): Unit = {
     // 礼包行为
-    val giftLogPath = appConfig.getString("origin-log.gift-behavior") + s"/${curDate}.csv"
-    val trafficLogPath = appConfig.getString("origin-log.traffic") + s"/dt=${curDate}??/part-*.parquet"
-    val outputFile = appConfig.getString("parquetpath")
+    val giftLogPath = appConfig.getString("origin-log.gift-behavior") + s"/${curDate}.csv"// /hdfs/logs/gift/behaviors
+    val trafficLogPath = appConfig.getString("origin-log.traffic") + s"/dt=${curDate}??/part-*.parquet"  // /hdfs/logs/logformat/traffic
+    val outputFile = appConfig.getString("parquetpath")   //  /hdfs/logs/gift/giftAnalytics/
 
     import org.apache.spark.sql.functions._
     import org.apache.spark.sql.types.DataTypes.IntegerType
     import spark.implicits._
 
     val typeMap = Map("领号" -> 2, "预定" -> 3, "活动" -> 4)
-    val getLogTypeId = udf((arg: String) => typeMap(arg))
+    val getLogTypeId = udf((arg: String) => {
+      val res=arg match {
+        case null=>0
+        case _=>typeMap(arg)
+      }
+      res
+    })
 
     // 预订，领取和活动行为
     val giftBehav = spark.read

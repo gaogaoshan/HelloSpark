@@ -20,13 +20,21 @@
             </goals>
             <configuration>
               <args>
-                <arg>-make:transitive</arg>
                 <arg>-dependencyfile</arg>
                 <arg>${project.build.directory}/.scala_dependencies</arg>
               </args>
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.3</version>
+        <configuration>
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.target}</target>
+          <encoding>${encoding}</encoding>
+        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
@@ -56,6 +64,11 @@
   </build>
   <repositories>
     <repository>
+      <id>alimaven</id>
+      <name>aliyun maven</name>
+      <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+    </repository>
+    <repository>
       <id>jboss-cache</id>
       <name>jboss-cache</name>
       <url>http://repository.jboss.org/maven2</url>
@@ -66,13 +79,21 @@
       <url>http://repo1.maven.org/maven2/</url>
     </repository>
   </repositories>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-streaming_2.11</artifactId>
+      <version>2.0.0</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
   <properties>
-    <scala.version>2.10.6</scala.version>
+    <scala.version>2.11.8</scala.version>
     <encoding>UTF-8</encoding>
     <hadoop.version>2.6.4</hadoop.version>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <spark.version>1.6.1</spark.version>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <spark.version>2.0.0</spark.version>
+    <maven.compiler.target>1.7</maven.compiler.target>
   </properties>
 </project>
 

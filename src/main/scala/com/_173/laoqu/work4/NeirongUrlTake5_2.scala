@@ -22,7 +22,7 @@ object NeirongUrlTake5_2 {
     "http://news.17173.com/content/04282017/092038222.shtml",
     "http://news.17173.com/content/04292017/083836186_1.shtml",
     "http://news.17173.com/content/04302017/002327112_1.shtml"
-   ")
+  )
 
   val url_name_Map=Map(
     "http://news.17173.com/content/03102017/140330881_1.shtml"->  "《天龙八部手游》限量测试已火爆开启",

@@ -25,8 +25,8 @@
         <module name="HelloSpark" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="HelloSpark" target="1.8" />
+    <bytecodeTargetLevel target="1.7">
+      <module name="HelloSpark" target="1.7" />
     </bytecodeTargetLevel>
   </component>
 </project>

@@ -1,0 +1,21 @@
+spark2-shell \
+--master yarn 	\
+--executor-memory 2G \
+--executor-cores  1 \
+--num-executors 2 	 \
+--driver-memory 500m \
+--jars /home/stat/hugsh/ojdbc6.jar \
+--driver-class-path /home/stat/hugsh/ojdbc6.jar \
+--name rain1
+
+
+spark.shuffle.file.buffer，默认32k spark.shuffle.memoryFraction，0.2
+
+一．从MySQL中加载数据（Spark Shell方式）
+1.启动Spark Shell，必须指定mysql连接驱动jar包
+/usr/local/spark-1.5.2-bin-hadoop2.6/bin/spark-shell \
+--master spark://node1.itcast.cn:7077 \
+--jars /usr/local/spark-1.5.2-bin-hadoop2.6/mysql-connector-java-5.1.35-bin.jar \
+--driver-class-path /usr/local/spark-1.5.2-bin-hadoop2.6/mysql-connector-java-5.1.35-bin.jar
+
+val jdbcDF = sqlContext.read.format("jdbc").options(Map("url" -> "jdbc:mysql://192.168.10.1:3306/bigdata", "driver" -> "com.mysql.jdbc.Driver", "dbtable" -> "person", "user" -> "root", "password" -> "123456")).load()

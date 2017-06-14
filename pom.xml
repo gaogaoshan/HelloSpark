@@ -29,14 +29,12 @@
 
 
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
         <encoding>UTF-8</encoding>
         <scala.version>2.11.8</scala.version>
         <spark.version>2.0.0</spark.version>
         <hadoop.version>2.6.4</hadoop.version>
-        <!--  <scala.version>2.11.8</scala.version>
-        <spark.version>2.1.0</spark.version>-->
     </properties>
 
     <dependencies>
@@ -50,9 +48,27 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_2.11</artifactId>
             <version>${spark.version}</version>
-            <scope>provided</scope>
+            <!--<scope>provided</scope>-->
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_2.11</artifactId>
+            <version>${spark.version}</version>
         </dependency>
 
+
+      <!--  <dependency>
+            <groupId>com.databricks</groupId>
+            <artifactId>spark-csv_2.11</artifactId>
+            <version>1.5.0</version>
+        </dependency>-->
+
+        <!--spark-streaming-kafka-0-8_2.11   spark-streaming-kafka-0-10_2.11-->
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-streaming-kafka-0-8_2.11</artifactId>
+            <version>${spark.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-streaming_2.11</artifactId>
@@ -61,29 +77,10 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.spark</groupId>
-            <!--spark-streaming-kafka-0-8_2.11   spark-streaming-kafka-0-10_2.11-->
-            <artifactId>spark-streaming-kafka-0-8_2.11</artifactId>
-            <version>${spark.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_2.11</artifactId>
-            <version>${spark.version}</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>com.databricks</groupId>
-            <artifactId>spark-csv_2.11</artifactId>
-            <version>1.5.0</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
             <version>${hadoop.version}</version>
+            <!--<scope>provided</scope>-->
         </dependency>
 
         <!--<dependency>-->
@@ -92,6 +89,11 @@
             <!--<version>11.2.0</version>-->
         <!--</dependency>-->
 
+       <!-- <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>2.8.1</version>
+        </dependency>-->
 
         <dependency>
             <groupId>mysql</groupId>
@@ -100,25 +102,27 @@
         </dependency>
 
         <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>2.8.1</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.5</version>
         </dependency>
 
-
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>config</artifactId>
+            <version>1.2.1</version>
+        </dependency>
 
     </dependencies>
+
+
 
     <build>
         <sourceDirectory>src/main/scala</sourceDirectory>
         <testSourceDirectory>src/test/scala</testSourceDirectory>
         <plugins>
+
+
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
@@ -138,6 +142,17 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <encoding>${encoding}</encoding>
+                </configuration>
             </plugin>
 
             <plugin>
